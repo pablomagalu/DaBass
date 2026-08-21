@@ -1,0 +1,18 @@
+{
+  "name": "Practicador de Escalas - Bajo",
+  "short_name": "Escalas Bajo",
+  "description": "App interactiva para practicar escalas y ejercicios en bajo eléctrico",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#120D0A",
+  "theme_color": "#E4B85C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23120D0A' width='192' height='192'/><text x='96' y='120' font-size='80' font-weight='bold' fill='%23E4B85C' text-anchor='middle' font-family='Arial'>♪</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

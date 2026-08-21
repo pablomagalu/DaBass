@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practicador de Escalas — Bajo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#120D0A;
+    --panel:#1B140F;
+    --panel-edge:#2A2018;
+    --wood-a:#4A2E1C;
+    --wood-b:#2E1B10;
+    --brass:#C89B3C;
+    --brass-bright:#E4B85C;
+    --teal:#4FB8AE;
+    --bone:#EDE3D0;
+    --muted:#8A7A68;
+    --danger:#B5533C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, #241811 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 110%, #1a130d 0%, transparent 50%),
+      var(--bg);
+    color:var(--bone);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:28px 18px 60px;
+  }
+  .wrap{max-width:1100px;margin:0 auto;}
+
+  /* header */
+  header{margin-bottom:26px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.28em;
+    color:var(--teal);
+    text-transform:uppercase;
+    margin-bottom:8px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow .ticks{display:flex;gap:2px;}
+  .eyebrow .ticks span{width:2px;height:9px;background:var(--muted);opacity:.5;}
+  .eyebrow .ticks span:nth-child(3n){background:var(--teal);opacity:1;}
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    text-transform:uppercase;
+    font-size:clamp(28px,5vw,42px);
+    letter-spacing:0.01em;
+    margin:0 0 6px;
+    color:var(--bone);
+  }
+  h1 span{color:var(--brass-bright);}
+  .sub{color:var(--muted);font-size:14.5px;max-width:560px;line-height:1.5;}
+
+  .mode-tabs{display:flex;gap:10px;margin-top:16px;}
+  .mode-tab-pill{
+    display:inline-flex;
+    align-items:stretch;
+    border:1px solid #3a2c1f;
+    border-radius:20px;
+    overflow:hidden;
+  }
+  .mode-tab-pill.active{border-color:var(--brass);}
+  .mode-tab-label{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    font-size:13px;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    padding:8px 12px;
+    cursor:pointer;
+  }
+  .mode-tab-pill:hover:not(.active) .mode-tab-label{color:var(--bone);}
+  .mode-tab-pill.active .mode-tab-label{background:var(--brass);color:#1B140F;}
+  .tab-arrow-inline{
+    background:#2A1F16;
+    border:none;
+    color:var(--brass-bright);
+    font-size:16px;
+    font-weight:700;
+    line-height:1;
+    padding:0 15px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .tab-arrow-inline:first-child{border-right:1px solid rgba(0,0,0,0.35);}
+  .tab-arrow-inline:last-child{border-left:1px solid rgba(0,0,0,0.35);}
+  .tab-arrow-inline:hover:not(:disabled){background:#3a2c1f;color:var(--bone);}
+  .tab-arrow-inline:disabled{opacity:0.3;cursor:default;}
+  .mode-tab-pill.active .tab-arrow-inline{background:#8A662A;color:#FBF6EC;}
+  .mode-tab-pill.active .tab-arrow-inline:hover:not(:disabled){background:#a3792f;}
+  .mode-tab-pill.active .tab-arrow-inline:disabled{opacity:0.4;}
+
+  /* layout */
+  .stage{
+    display:grid;
+    grid-template-columns:250px 1fr;
+    gap:20px;
+  }
+  @media (max-width:820px){
+    .stage{grid-template-columns:1fr;}
+  }
+
+  /* control rail */
+  .rail{
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:10px;
+    padding:18px 16px;
+    align-self:start;
+    position:sticky;
+    top:16px;
+  }
+  @media (max-width:820px){ .rail{position:static;} }
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:7px;
+  }
+  select, input[type=number]{
+    width:100%;
+    background:#120D0A;
+    border:1px solid #3a2c1f;
+    color:var(--bone);
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    padding:9px 10px;
+    border-radius:6px;
+    outline:none;
+  }
+  select:focus, input:focus{border-color:var(--teal);}
+  input[type=range]{width:100%;accent-color:var(--brass);}
+  .rangeval{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--brass-bright);}
+  .count-row{display:flex;align-items:center;gap:8px;}
+  .count-row input{text-align:center;}
+  .stepbtn{
+    width:34px;height:34px;flex:0 0 auto;
+    background:#241a12;border:1px solid #3a2c1f;color:var(--bone);
+    border-radius:6px;cursor:pointer;font-size:16px;line-height:1;
+  }
+  .stepbtn:hover{border-color:var(--brass);color:var(--brass-bright);}
+
+  .playbtn{
+    width:100%;
+    margin-top:6px;
+    background:linear-gradient(180deg,var(--brass-bright),var(--brass));
+    color:#1B140F;
+    border:none;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    font-size:14px;
+    padding:11px;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .playbtn:hover{filter:brightness(1.08);}
+  .playbtn:active{transform:translateY(1px);}
+  .tempo-line{display:flex;justify-content:space-between;align-items:baseline;}
+
+  .theory-field{margin-bottom:16px;}
+  .theory-card{
+    background:#120D0A;
+    border:1px solid #3a2c1f;
+    border-radius:8px;
+    padding:11px 12px;
+    max-height:260px;
+    overflow-y:auto;
+  }
+  .theory-formula{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.03em;
+    color:var(--brass-bright);
+    margin-bottom:8px;
+    line-height:1.5;
+  }
+  .theory-blurb{
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--bone);
+    margin:0 0 8px;
+  }
+  .theory-tips{
+    margin:0;
+    padding-left:16px;
+    font-size:11.5px;
+    line-height:1.5;
+    color:var(--muted);
+  }
+  .theory-tips li{margin-bottom:4px;}
+  .theory-tips li:last-child{margin-bottom:0;}
+
+  /* main stage */
+  .board-panel{
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:10px;
+    padding:18px 16px 14px;
+    overflow-x:auto;
+  }
+  .board-scroll{min-width:640px;}
+  svg{display:block;width:100%;height:auto;}
+
+  .pos-nav{
+    display:flex;align-items:center;justify-content:center;
+    gap:14px;
+    margin-bottom:12px;
+  }
+  .oct-tabs{
+    display:flex;justify-content:center;gap:6px;
+    margin-bottom:10px;
+  }
+  .oct-tab{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    background:transparent;
+    border:1px solid #3a2c1f;
+    color:var(--muted);
+    padding:5px 11px;
+    border-radius:14px;
+    cursor:pointer;
+  }
+  .oct-tab:hover{color:var(--bone);border-color:var(--brass);}
+  .oct-tab.active{
+    background:var(--brass);
+    border-color:var(--brass);
+    color:#1B140F;
+    font-weight:700;
+  }
+  .posbtn{
+    width:36px;height:36px;flex:0 0 auto;
+    background:#241a12;border:1px solid #3a2c1f;color:var(--brass-bright);
+    border-radius:50%;cursor:pointer;font-size:18px;line-height:1;
+  }
+  .posbtn:hover:not(:disabled){border-color:var(--brass);}
+  .posbtn:disabled{opacity:0.3;cursor:default;}
+  .pos-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    color:var(--bone);
+    text-align:center;
+    min-width:260px;
+  }
+  .pos-label .muted{color:var(--muted);}
+
+  .legend{
+    display:flex;flex-wrap:wrap;gap:18px;
+    margin-top:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:var(--muted);
+  }
+  .legend .item{display:flex;align-items:center;gap:7px;}
+  .swatch{width:13px;height:13px;border-radius:50%;display:inline-block;}
+
+  /* sequence strip */
+  .seq-panel{
+    margin-top:18px;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:10px;
+    padding:16px 18px;
+  }
+  .seq-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:12px;
+  }
+  .seq-align-wrap{overflow-x:auto; padding-top:12px;}
+  .seq-strip{
+    display:grid;
+    gap:8px;
+  }
+  .seq-note{
+    justify-self:center;
+    width:56px;
+    box-sizing:border-box;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:14px;
+    color:#1B140F;
+    background:var(--teal);
+    border-radius:6px;
+    padding:6px 4px;
+    position:relative;
+    text-align:center;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .seq-note.root{background:var(--brass-bright);}
+  .seq-note .idx{
+    position:absolute;top:-10px;left:-8px;
+    background:#120D0A;
+    color:var(--bone);
+    border-radius:50%;
+    width:19px;height:19px;
+    font-size:10.5px;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px solid var(--brass-bright);
+  }
+  .seq-note.active{transform:translateY(-3px);box-shadow:0 4px 12px rgba(228,184,92,.4);}
+
+  .interval-strip{
+    display:grid;
+    gap:8px;
+  }
+  .interval-chip{
+    justify-self:center;
+    width:56px;
+    box-sizing:border-box;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    background:#241a12;
+    border:1px solid #3a2c1f;
+    border-radius:6px;
+    padding:6px 3px;
+    display:flex;flex-direction:column;
+    align-items:center;
+    gap:2px;
+  }
+  .interval-chip .pair{color:var(--muted);font-size:9.5px;}
+  .interval-chip .dist{color:var(--teal);font-weight:700;font-size:9.5px;text-align:center;}
+
+  footer{
+    margin-top:26px;
+    color:var(--muted);
+    font-size:12px;
+    font-family:'JetBrains Mono',monospace;
+    text-align:center;
+  }
+</style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#E4B85C">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><span class="ticks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>ESTUDIO DE ESCALAS · BAJO ELÉCTRICO 4 CUERDAS</div>
+    <h1>Practicador de <span id="modeTitle">Escalas</span></h1>
+    <p class="sub" id="modeSub">Elegí el tipo de escala, la nota raíz y la cantidad de notas. Las pestañas eligen en qué octava de la raíz arrancar, y las flechas recorren las distintas posiciones cómodas dentro de esa octava — todas tocan las mismas notas.</p>
+    <div class="mode-tabs" id="modeTabsContainer"></div>
+  </header>
+
+  <div class="stage">
+    <div class="rail" id="railScales">
+      <div class="field">
+        <label for="rootSelect">Nota raíz</label>
+        <select id="rootSelect"></select>
+      </div>
+      <div class="field">
+        <label for="scaleSelect">Tipo de escala</label>
+        <select id="scaleSelect"></select>
+      </div>
+      <div class="field theory-field">
+        <label>Teoría de la escala</label>
+        <div class="theory-card">
+          <div class="theory-formula" id="theoryFormula"></div>
+          <p class="theory-blurb" id="theoryBlurb"></p>
+          <ul class="theory-tips" id="theoryTips"></ul>
+        </div>
+      </div>
+      <div class="field">
+        <label for="countInput">Cantidad de notas</label>
+        <div class="count-row">
+          <button class="stepbtn" id="countMinus" type="button">−</button>
+          <input type="number" id="countInput" min="2" max="24" value="8">
+          <button class="stepbtn" id="countPlus" type="button">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="tempo-line">
+          <label for="tempoInput" style="margin-bottom:0;">Tempo</label>
+          <span class="rangeval" id="tempoVal">96 BPM</span>
+        </div>
+        <input type="range" id="tempoInput" min="50" max="180" value="96">
+      </div>
+      <button class="playbtn" id="playBtn" type="button">▶ Reproducir secuencia</button>
+    </div>
+
+    <div class="rail" id="railExercises" style="display:none;">
+      <div class="field">
+        <label for="exerciseSelect">Ejercicio</label>
+        <select id="exerciseSelect"></select>
+      </div>
+      <div class="field">
+        <label for="exerciseRootSelect">Nota inicial</label>
+        <select id="exerciseRootSelect"></select>
+      </div>
+      <div class="field theory-field">
+        <label>Descripción</label>
+        <div class="theory-card">
+          <p class="theory-blurb" id="exerciseBlurb" style="margin:0;"></p>
+        </div>
+      </div>
+      <div class="field">
+        <div class="tempo-line">
+          <label for="tempoInputEx" style="margin-bottom:0;">Tempo</label>
+          <span class="rangeval" id="tempoValEx">96 BPM</span>
+        </div>
+        <input type="range" id="tempoInputEx" min="50" max="180" value="96">
+      </div>
+      <button class="playbtn" id="playBtnEx" type="button">▶ Reproducir paso</button>
+    </div>
+
+    <div class="rail" id="railNotes" style="display:none;">
+      <div class="field">
+        <label for="highlightNoteSelect">Resaltar nota</label>
+        <div class="count-row">
+          <button class="stepbtn" id="noteMinus" type="button" aria-label="Bajar un semitono">‹</button>
+          <select id="highlightNoteSelect"></select>
+          <button class="stepbtn" id="notePlus" type="button" aria-label="Subir un semitono">›</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fretsInput">Trastes a mostrar</label>
+        <div class="count-row">
+          <button class="stepbtn" id="fretsMinus" type="button">−</button>
+          <input type="number" id="fretsInput" min="12" max="24" value="12">
+          <button class="stepbtn" id="fretsPlus" type="button">+</button>
+        </div>
+      </div>
+      <div class="field theory-field">
+        <label>Referencia</label>
+        <div class="theory-card">
+          <p class="theory-blurb" style="margin:0;">Todas las notas del diapasón, cuerda por cuerda y traste por traste. Útil para memorizar dónde está cada nota sin depender de una escala o ejercicio en particular.</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="board-panel">
+        <div id="scalesNav">
+          <div class="oct-tabs" id="octTabs"></div>
+          <div class="pos-nav">
+            <button class="posbtn" id="posPrev" type="button" aria-label="Posición anterior">‹</button>
+            <div class="pos-label" id="posLabel">Posición 1 de 1</div>
+            <button class="posbtn" id="posNext" type="button" aria-label="Posición siguiente">›</button>
+          </div>
+        </div>
+        <div id="exercisesNav" class="pos-nav" style="display:none;">
+          <button class="posbtn" id="stepPrev" type="button" aria-label="Paso anterior">‹</button>
+          <div class="pos-label" id="stepLabel">Paso 1 de 1</div>
+          <button class="posbtn" id="stepNext" type="button" aria-label="Paso siguiente">›</button>
+        </div>
+        <div class="board-scroll" id="boardScroll"></div>
+        <div class="legend" id="legendScalesEx">
+          <div class="item"><span class="swatch" style="background:var(--brass-bright);"></span> <span id="legendRoot">Raíz (en la secuencia)</span></div>
+          <div class="item"><span class="swatch" style="background:var(--teal);"></span> <span id="legendNote">Nota de la escala (en la secuencia)</span></div>
+          <div class="item" id="legendRef"><span class="swatch" style="background:#5c4630;width:9px;height:9px;"></span> <span id="legendRefText">Nota de la escala (referencia, todo el traste)</span></div>
+        </div>
+        <div class="legend" id="legendNotesMode" style="display:none;">
+          <div class="item"><span class="swatch" style="background:#EDE3D0;"></span> Nota natural (A-G)</div>
+          <div class="item"><span class="swatch" style="background:var(--brass-bright);"></span> Nota sostenida (#)</div>
+        </div>
+      </div>
+
+      <div class="seq-panel" id="staffPanel" style="padding: 20px 0;">
+        <!-- El pentagrama + tab se dibuja acá -->
+      </div>
+
+      <div class="seq-panel" id="seqPanel">
+        <div class="seq-title" id="seqTitle">Secuencia a practicar</div>
+        <div class="seq-align-wrap">
+          <div class="seq-strip" id="seqStrip"></div>
+          <div class="seq-title" style="margin-top:18px;">Distancia entre notas</div>
+          <div class="interval-strip" id="intervalStrip"></div>
+        </div>
+      </div>
+
+      <div class="seq-panel" id="notesDegreesPanel" style="display:none;">
+        <div class="seq-title">Grados de la escala mayor de C</div>
+        <div class="seq-align-wrap">
+          <div class="seq-strip" id="notesDegreeStrip"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>E · A · D · G — afinación estándar de bajo de 4 cuerdas</footer>
+</div>
+
+<script>
+/* ---------- datos musicales ---------- */
+const NOTE_NAMES_FROM_E = ['E','F','F#','G','G#','A','A#','B','C','C#','D','D#'];
+const NOTE_TO_EIDX = {E:0,F:1,'F#':2,G:3,'G#':4,A:5,'A#':6,B:7,C:8,'C#':9,D:10,'D#':11};
+const ROOT_OPTIONS = ['A','A#','B','C','C#','D','D#','E','F','F#','G','G#'];
+
+const SCALES = [
+  {id:'major', label:'Mayor (Jónica)', intervals:[0,2,4,5,7,9,11]},
+  {id:'minor', label:'Menor natural (Eólica)', intervals:[0,2,3,5,7,8,10]},
+  {id:'harmonic_minor', label:'Menor armónica', intervals:[0,2,3,5,7,8,11]},
+  {id:'melodic_minor', label:'Menor melódica', intervals:[0,2,3,5,7,9,11]},
+  {id:'major_pentatonic', label:'Pentatónica mayor', intervals:[0,2,4,7,9]},
+  {id:'minor_pentatonic', label:'Pentatónica menor', intervals:[0,3,5,7,10]},
+  {id:'blues', label:'Blues', intervals:[0,3,5,6,7,10]},
+  {id:'dorian', label:'Dórica', intervals:[0,2,3,5,7,9,10]},
+  {id:'phrygian', label:'Frigia', intervals:[0,1,3,5,7,8,10]},
+  {id:'lydian', label:'Lidia', intervals:[0,2,4,6,7,9,11]},
+  {id:'mixolydian', label:'Mixolidia', intervals:[0,2,4,5,7,9,10]},
+  {id:'locrian', label:'Locria', intervals:[0,1,3,5,6,8,10]},
+  {id:'chromatic', label:'Cromática', intervals:[0,1,2,3,4,5,6,7,8,9,10,11]},
+];
+
+// Contenido de teoría musical por tipo de escala: fórmula de tonos/semitonos,
+// una explicación breve de cómo está armada, y datos prácticos para el aprendiz.
+const THEORY = {
+  major: {
+    formula: 'T - T - S - T - T - T - S',
+    blurb: 'La escala más estable y "brillante" de la música occidental. Es la base a partir de la cual se arman todos los modos: cada uno nace de empezar esta misma secuencia de notas desde un grado distinto.',
+    tips: [
+      'El grado 1 (la raíz) suena como "casa": todo resuelve ahí.',
+      'Funciona bien sobre progresiones de pop, folk y country.',
+      'Entender esta fórmula te da gratis los otros 6 modos (Dórica, Frigia, Lidia, etc.).'
+    ]
+  },
+  minor: {
+    formula: 'T - S - T - T - S - T - T',
+    blurb: 'La menor natural (modo Eólico). Tiene el mismo grupo de notas que una escala mayor que empieza 3 semitonos más arriba (su "relativa mayor"), pero al arrancar desde otro grado, suena melancólica en vez de brillante.',
+    tips: [
+      'Cada escala mayor tiene una menor natural relativa con las mismas notas.',
+      'Es la escala base del rock, metal y pop en tonalidad menor.',
+      'Sirve de punto de partida para entender la armónica y la melódica (son variantes de ella).'
+    ]
+  },
+  harmonic_minor: {
+    formula: 'T - S - T - T - S - T½ - S',
+    blurb: 'Es la menor natural con el 7° grado subido medio tono. Eso genera un salto de tono y medio entre el 6° y el 7° grado, un intervalo poco común que le da su sonido tenso y "exótico".',
+    tips: [
+      'El salto de 1½ tono es la marca registrada: practicalo despacio, es el tramo más difícil de afinar de oído.',
+      'La 7° subida crea más tensión hacia la raíz que en la menor natural.',
+      'Muy usada en metal neoclásico, flamenco y música de Europa del Este.'
+    ]
+  },
+  melodic_minor: {
+    formula: 'T - S - T - T - T - T - S',
+    blurb: 'Menor natural con el 6° y 7° grado subidos medio tono cada uno. El resultado suena casi como una escala mayor, pero con la 3° menor (que es lo que le da identidad de "menor").',
+    tips: [
+      'En jazz se usa igual de subida que de bajada (a diferencia de la versión clásica, que solo sube así).',
+      'Va muy bien sobre acordes menor con 7° mayor (m/maj7).',
+      'Es un buen puente auditivo entre sonido mayor y menor.'
+    ]
+  },
+  major_pentatonic: {
+    formula: 'T - T - T½ - T - T½',
+    blurb: 'Es la escala mayor sin el 4° ni el 7° grado — justo las dos notas que generan más tensión/disonancia contra la tónica. Por eso, casi cualquier combinación de estas 5 notas "suena bien".',
+    tips: [
+      'Es la escala más segura para improvisar: es muy difícil que suene "mal".',
+      'Base de innumerables líneas de country, pop y rock clásico.',
+      'Agregarle la 4° menor (blue note) la convierte en la escala de blues.'
+    ]
+  },
+  minor_pentatonic: {
+    formula: 'T½ - T - T - T½ - T',
+    blurb: 'Es la menor natural sin el 2° ni el 6° grado. Al sacar esas dos notas, quedan solo los tonos más "resonantes" contra la tónica menor, lo que la hace ideal para improvisar sin pensar demasiado.',
+    tips: [
+      'Es, por lejos, la escala más usada en solos de blues, rock y funk.',
+      'Suena bien sobre casi cualquier acorde menor de la progresión.',
+      'Es el punto de partida de la escala de blues (solo hay que sumarle una nota).'
+    ]
+  },
+  blues: {
+    formula: 'T½ - T - S - S - T½ - T',
+    blurb: 'Pentatónica menor con una nota extra entre el 4° y el 5° grado (la "blue note", una 5° disminuida). Esa nota de paso es la que le da el color quejumbroso característico del blues.',
+    tips: [
+      'La nota azul funciona mejor como nota de paso rápida, no para quedarte parado en ella.',
+      'Es LA escala insignia del blues, pero también aparece todo el tiempo en rock y funk.',
+      'Practicala primero como pentatónica menor y después sumale la nota azul.'
+    ]
+  },
+  dorian: {
+    formula: 'T - S - T - T - T - S - T',
+    blurb: 'El 2° modo de la escala mayor. Suena parecida a la menor natural, pero con el 6° grado mayor en vez de menor — eso la hace sonar más "abierta" o jazzera que una menor común.',
+    tips: [
+      'Es la escala natural sobre acordes menor7 en progresiones de jazz y funk.',
+      'Es simétrica: la fórmula de tonos de la mitad de abajo es igual a la de arriba invertida.',
+      'Muy usada en soul, funk y jazz modal (ej. canciones sobre un solo acorde menor).'
+    ]
+  },
+  phrygian: {
+    formula: 'S - T - T - T - S - T - T',
+    blurb: 'Modo menor con el 2° grado bajado medio tono. Ese semitono pegado a la raíz es lo que le da su color español/oriental tan reconocible.',
+    tips: [
+      'El semitono raíz→2° es la nota clave: resaltala para que se note el color frigio.',
+      'Base del flamenco y muy usada en metal (su variante "frigia dominante").',
+      'Genera tensión inmediata apenas te movés desde la tónica.'
+    ]
+  },
+  lydian: {
+    formula: 'T - T - T - S - T - T - S',
+    blurb: 'Escala mayor con el 4° grado subido medio tono (#4). Esa única nota cambiada le da un sonido "flotante" o soñador muy distinto a la mayor común.',
+    tips: [
+      'El #4 es la nota que define el modo: es la que hay que resaltar en las frases.',
+      'Muy usada en bandas sonoras de cine y jazz moderno.',
+      'Sobre un acorde mayor7 suena más colorida que la escala mayor tradicional.'
+    ]
+  },
+  mixolydian: {
+    formula: 'T - T - S - T - T - S - T',
+    blurb: 'Escala mayor con el 7° grado bajado medio tono (b7). Al perder la "nota sensible" que tira hacia la tónica, suena más relajada y menos resuelta que la mayor.',
+    tips: [
+      'Es la escala natural para tocar sobre acordes de dominante (acordes con 7ma menor, tipo A7).',
+      'Muy común en rock, funk y blues-rock.',
+      'Pensala como "mayor sin la tensión final" — nunca termina de "cerrar" del todo.'
+    ]
+  },
+  locrian: {
+    formula: 'S - T - T - S - T - T - T',
+    blurb: 'El modo más inestable de todos: tiene el 2° y el 5° grado bajados, lo que hace que ni siquiera la tónica suene como un centro sólido de reposo.',
+    tips: [
+      'Se usa poco como escala "principal" por lo inestable que es su 5° grado.',
+      'Aparece sobre acordes semidisminuidos (m7b5), típicos del jazz.',
+      'Es más un recurso de color que una escala para quedarte tocando mucho tiempo.'
+    ]
+  },
+  chromatic: {
+    formula: 'S - S - S - S - S - S - S - S - S - S - S - S',
+    blurb: 'Usa las 12 notas posibles, todas separadas por un semitono. No pertenece a ninguna tonalidad en particular — es pura mecánica del instrumento.',
+    tips: [
+      'Es un ejercicio técnico excelente para entrenar todos los dedos en todos los trastes por igual.',
+      'No define un centro tonal por sí sola, así que no la uses para "sonar en una tonalidad".',
+      'En la práctica real se usa como recurso de paso (notas cromáticas) entre notas de otras escalas.'
+    ]
+  },
+};
+
+// Cada ejercicio se define por: un patrón de saltos en semitonos desde la raíz
+// del paso (por ej. tríada mayor R-3-5-3-R = [0,4,7,4,0]), y cuánto sube la
+// raíz de un paso al siguiente (stepShift, en semitonos). totalSteps es cuántos
+// pasos se generan antes de repetirse el ciclo.
+// Cada ejercicio se arma con "segmentos": cada segmento es un acorde/patrón
+// (offsets en semitonos desde su propia raíz) que empieza en rootOffset
+// semitonos respecto de la raíz del paso. Un ejercicio simple (una tríada) es
+// un solo segmento con rootOffset 0; un ejercicio compuesto (ej. dominante que
+// resuelve a otro acorde) encadena 2+ segmentos. stepShift es cuánto sube la
+// raíz del paso de un paso al siguiente; totalSteps cuántos pasos se generan.
+const EXERCISES = [
+  {
+    id: 'major_triad_5th_jump',
+    name: 'Tríadas Mayores - Salto 5ta',
+    description: 'Tríada mayor ascendente-descendente (Raíz-3ra-5ta-3ra-Raíz). Cada paso salta a la tríada mayor construida una 5ta justa arriba de la anterior, recorriendo las 12 tríadas mayores del círculo de quintas.',
+    segments: [
+      { rootOffset: 0, pattern: [0,4,7,4,0] },
+    ],
+    stepShift: 7,
+    totalSteps: 12,
+    describeStep(segRootPC){
+      return `Tríada de <b>${pcName(segRootPC)}</b> mayor`;
+    },
+  },
+  {
+    id: 'jonica_ascenso_regreso_modulo_2_1',
+    name: 'Escala Jónica Mayor - Ascenso y Regreso (Módulo 2-1)',
+    description: 'Desarrolla fluidez e independencia digital alternando saltos descendentes y pasos ascendentes dentro de la escala mayor. Asciendes la escala completa (grados 1-8) y luego desciendes con patrón interválico de -2 grados, +1 grado, hasta retornar a la tónica.',
+    segments: [
+      { rootOffset: 0, pattern: [0, 2, 4, 5, 7, 9, 11, 12, 9, 11, 7, 9, 5, 7, 4, 5, 2, 4, 0] },
+    ],
+    stepShift: 1,
+    totalSteps: 12,
+    describeStep(segRootPC){
+      return `Escala Jónica de <b>${pcName(segRootPC)}</b> mayor`;
+    },
+  },
+  {
+    id: 'augmented_dominant_maj7_resolution',
+    name: 'Dominante Aumentada → Resolución Maj7',
+    description: 'Arpegio de tríada aumentada sobre la "dominante" (Raíz-3ra-5ta-Raíz(8va)-5ta-Raíz), que resuelve subiendo una 4ta justa al arpegio de acorde mayor7 (grados 1-3-5-7) de la "tónica". Cada paso sube medio tono la dominante y repite el mismo dibujo, recorriendo las 12 tonalidades de forma cromática.',
+    segments: [
+      { rootOffset: 0, pattern: [0,4,8,12,8,0] }, // tríada aumentada: R-3-5-R(8va)-5-R
+      { rootOffset: 5, pattern: [0,4,7,11] },      // resuelve una 4ta arriba: maj7 = R-3-5-7
+    ],
+    stepShift: 1,
+    totalSteps: 12,
+    describeStep(segRootPC, segIdx){
+      return segIdx===0
+        ? `Arpegio aumentado de <b>${pcName(segRootPC)}</b> (dominante)`
+        : `Resuelve a <b>${pcName(segRootPC)}</b> mayor7`;
+    },
+  },
+];
+
+const STRINGS = [
+  {name:'G', open:15, weight:2},
+  {name:'D', open:10, weight:2.5},
+  {name:'A', open:5,  weight:3.2},
+  {name:'E', open:0,  weight:4},
+];
+
+/* ---------- estado / UI init ---------- */
+const rootSelect = document.getElementById('rootSelect');
+const scaleSelect = document.getElementById('scaleSelect');
+const countInput = document.getElementById('countInput');
+const tempoInput = document.getElementById('tempoInput');
+const tempoVal = document.getElementById('tempoVal');
+const boardScroll = document.getElementById('boardScroll');
+const seqStrip = document.getElementById('seqStrip');
+const intervalStrip = document.getElementById('intervalStrip');
+const playBtn = document.getElementById('playBtn');
+const posPrevBtn = document.getElementById('posPrev');
+const posNextBtn = document.getElementById('posNext');
+const posLabel = document.getElementById('posLabel');
+const octTabs = document.getElementById('octTabs');
+const theoryFormula = document.getElementById('theoryFormula');
+const theoryBlurb = document.getElementById('theoryBlurb');
+const theoryTips = document.getElementById('theoryTips');
+
+// --- referencias del modo Ejercicios ---
+const exerciseSelect = document.getElementById('exerciseSelect');
+const exerciseRootSelect = document.getElementById('exerciseRootSelect');
+const exerciseBlurb = document.getElementById('exerciseBlurb');
+const tempoInputEx = document.getElementById('tempoInputEx');
+const tempoValEx = document.getElementById('tempoValEx');
+const playBtnEx = document.getElementById('playBtnEx');
+const stepPrevBtn = document.getElementById('stepPrev');
+const stepNextBtn = document.getElementById('stepNext');
+const stepLabel = document.getElementById('stepLabel');
+const railScales = document.getElementById('railScales');
+const railExercises = document.getElementById('railExercises');
+const scalesNav = document.getElementById('scalesNav');
+const exercisesNav = document.getElementById('exercisesNav');
+const modeTabsContainer = document.getElementById('modeTabsContainer');
+const modeTitle = document.getElementById('modeTitle');
+const modeSub = document.getElementById('modeSub');
+const seqTitle = document.getElementById('seqTitle');
+const seqPanel = document.getElementById('seqPanel');
+const staffPanel = document.getElementById('staffPanel');
+const railNotes = document.getElementById('railNotes');
+const fretsInput = document.getElementById('fretsInput');
+const highlightNoteSelect = document.getElementById('highlightNoteSelect');
+
+const noOption = document.createElement('option');
+noOption.value = ''; noOption.textContent = '— Ninguna —';
+highlightNoteSelect.appendChild(noOption);
+ROOT_OPTIONS.forEach(n=>{
+  const o=document.createElement('option'); o.value=n; o.textContent=n;
+  if(n==='C') o.selected = true;
+  highlightNoteSelect.appendChild(o);
+});
+const legendScalesEx = document.getElementById('legendScalesEx');
+const legendNotesMode = document.getElementById('legendNotesMode');
+const notesDegreesPanel = document.getElementById('notesDegreesPanel');
+const notesDegreeStrip = document.getElementById('notesDegreeStrip');
+const legendRoot = document.getElementById('legendRoot');
+const legendNote = document.getElementById('legendNote');
+const legendRefText = document.getElementById('legendRefText');
+
+ROOT_OPTIONS.forEach(n=>{
+  const o=document.createElement('option'); o.value=n; o.textContent=n;
+  if(n==='A') o.selected=true;
+  rootSelect.appendChild(o);
+});
+SCALES.forEach(s=>{
+  const o=document.createElement('option'); o.value=s.id; o.textContent=s.label;
+  scaleSelect.appendChild(o);
+});
+EXERCISES.forEach(ex=>{
+  const o=document.createElement('option'); o.value=ex.id; o.textContent=ex.name;
+  exerciseSelect.appendChild(o);
+});
+ROOT_OPTIONS.forEach(n=>{
+  const o=document.createElement('option'); o.value=n; o.textContent=n;
+  if(n==='C') o.selected=true;
+  exerciseRootSelect.appendChild(o);
+});
+
+rootSelect.addEventListener('input', ()=>{ recomputePositions(); renderAll(); });
+scaleSelect.addEventListener('input', ()=>{ recomputePositions(); renderAll(); });
+countInput.addEventListener('input', renderAll);
+tempoInput.addEventListener('input', ()=>{ tempoVal.textContent = tempoInput.value+' BPM'; });
+document.getElementById('countMinus').addEventListener('click', ()=>{ countInput.value = Math.max(2, (+countInput.value||8)-1); renderAll(); });
+document.getElementById('countPlus').addEventListener('click', ()=>{ countInput.value = Math.min(24, (+countInput.value||8)+1); renderAll(); });
+playBtn.addEventListener('click', ()=>playSequence(currentSeq, parseInt(tempoInput.value)||96));
+posPrevBtn.addEventListener('click', ()=>{ if(posIndex>0){ posIndex--; renderAll(); } });
+posNextBtn.addEventListener('click', ()=>{ if(posIndex<positions.length-1){ posIndex++; renderAll(); } });
+
+exerciseSelect.addEventListener('input', ()=>{ exerciseStepIndex=0; renderExercise(); });
+exerciseRootSelect.addEventListener('input', ()=>{ exerciseStepIndex=0; renderExercise(); });
+tempoInputEx.addEventListener('input', ()=>{ tempoValEx.textContent = tempoInputEx.value+' BPM'; });
+playBtnEx.addEventListener('click', ()=>playSequence(currentSeq, parseInt(tempoInputEx.value)||96));
+stepPrevBtn.addEventListener('click', ()=>{ if(exerciseStepIndex>0){ exerciseStepIndex--; renderExercise(); } });
+stepNextBtn.addEventListener('click', ()=>{ exerciseStepIndex++; renderExercise(); });
+fretsInput.addEventListener('input', renderNotes);
+highlightNoteSelect.addEventListener('input', renderNotes);
+
+function shiftHighlightNote(delta){
+  let idx = ROOT_OPTIONS.indexOf(highlightNoteSelect.value);
+  if(idx===-1) idx = ROOT_OPTIONS.indexOf('C'); // si estaba en "— Ninguna —", arranca desde C
+  idx = ((idx+delta)%ROOT_OPTIONS.length + ROOT_OPTIONS.length) % ROOT_OPTIONS.length;
+  highlightNoteSelect.value = ROOT_OPTIONS[idx];
+  renderNotes();
+}
+document.getElementById('noteMinus').addEventListener('click', ()=>shiftHighlightNote(-1));
+document.getElementById('notePlus').addEventListener('click', ()=>shiftHighlightNote(1));
+document.getElementById('fretsMinus').addEventListener('click', ()=>{ fretsInput.value = Math.max(12, (+fretsInput.value||12)-1); renderNotes(); });
+document.getElementById('fretsPlus').addEventListener('click', ()=>{ fretsInput.value = Math.min(24, (+fretsInput.value||12)+1); renderNotes(); });
+
+let currentSeq = [];
+let positions = [];
+let posIndex = 0;
+let appMode = 'scales';
+let exerciseStepIndex = 0;
+
+const TAB_DEFS = {
+  scales: {label:'Escalas'},
+  exercises: {label:'Ejercicios'},
+  notes: {label:'Notas'},
+};
+let tabOrder = ['scales','exercises','notes']; // orden en que se muestran las pestañas; reordenable con las flechitas
+
+function renderModeTabs(){
+  modeTabsContainer.innerHTML = '';
+  tabOrder.forEach((key,i)=>{
+    const pill = document.createElement('div');
+    pill.className = 'mode-tab-pill'+(appMode===key?' active':'');
+
+    const leftBtn = document.createElement('button');
+    leftBtn.type = 'button'; leftBtn.className = 'tab-arrow-inline'; leftBtn.textContent = '‹';
+    leftBtn.setAttribute('aria-label', 'Mover "'+TAB_DEFS[key].label+'" a la izquierda');
+    leftBtn.disabled = i===0;
+    leftBtn.addEventListener('click', (e)=>{ e.stopPropagation(); moveTab(i,-1); });
+
+    const label = document.createElement('button');
+    label.type = 'button'; label.className = 'mode-tab-label'; label.textContent = TAB_DEFS[key].label;
+    label.addEventListener('click', ()=>switchMode(key));
+
+    const rightBtn = document.createElement('button');
+    rightBtn.type = 'button'; rightBtn.className = 'tab-arrow-inline'; rightBtn.textContent = '›';
+    rightBtn.setAttribute('aria-label', 'Mover "'+TAB_DEFS[key].label+'" a la derecha');
+    rightBtn.disabled = i===tabOrder.length-1;
+    rightBtn.addEventListener('click', (e)=>{ e.stopPropagation(); moveTab(i,1); });
+
+    pill.appendChild(leftBtn);
+    pill.appendChild(label);
+    pill.appendChild(rightBtn);
+    modeTabsContainer.appendChild(pill);
+  });
+}
+
+function moveTab(index, dir){
+  const newIndex = index+dir;
+  if(newIndex<0 || newIndex>=tabOrder.length) return;
+  const tmp = tabOrder[index];
+  tabOrder[index] = tabOrder[newIndex];
+  tabOrder[newIndex] = tmp;
+  renderModeTabs();
+}
+
+function getCurrentExercise(){ return EXERCISES.find(e=>e.id===exerciseSelect.value) || EXERCISES[0]; }
+
+function switchMode(mode){
+  appMode = mode;
+  const isScales = mode==='scales';
+  const isExercises = mode==='exercises';
+  const isNotes = mode==='notes';
+
+  railScales.style.display = isScales?'':'none';
+  railExercises.style.display = isExercises?'':'none';
+  railNotes.style.display = isNotes?'':'none';
+
+  scalesNav.style.display = isScales?'':'none';
+  exercisesNav.style.display = isExercises?'':'none';
+
+  legendScalesEx.style.display = isNotes?'none':'';
+  legendNotesMode.style.display = isNotes?'':'none';
+  seqPanel.style.display = isNotes?'none':'';
+  staffPanel.style.display = isNotes?'none':'';
+  notesDegreesPanel.style.display = isNotes?'':'none';
+
+  renderModeTabs();
+
+  modeTitle.textContent = isScales?'Escalas':(isExercises?'Ejercicios':'Notas');
+  modeSub.textContent = isScales
+    ? 'Elegí el tipo de escala, la nota raíz y la cantidad de notas. Las pestañas eligen en qué octava de la raíz arrancar, y las flechas recorren las distintas posiciones cómodas dentro de esa octava — todas tocan las mismas notas.'
+    : isExercises
+      ? 'Elegí un ejercicio y la nota donde arranca. Las flechas avanzan o retroceden entre los pasos del ejercicio.'
+      : 'Referencia completa del diapasón: todas las notas, en todas las cuerdas y trastes.';
+  seqTitle.textContent = isScales?'Secuencia a practicar':'Patrón del paso actual';
+  legendRoot.textContent = isScales?'Raíz (en la secuencia)':'Raíz del acorde (en el patrón)';
+  legendNote.textContent = isScales?'Nota de la escala (en la secuencia)':'Nota del acorde (en el patrón)';
+  legendRefText.textContent = isScales?'Nota de la escala (referencia, todo el traste)':'Nota del acorde (referencia, todo el traste)';
+
+  if(isScales){ renderAll(); }
+  else if(isExercises){ renderExercise(); }
+  else { renderNotes(); }
+}
+
+/* ---------- lógica musical ---------- */
+function pcName(abs){ const pc=((abs%12)+12)%12; return NOTE_NAMES_FROM_E[pc]; }
+
+const MAX_STRETCH = 3; // trastes de span de mano cómodo dentro de UNA cuerda: caja de 4 trastes (índice-mayor-anular-meñique = 4 posiciones, span de 3)
+
+function buildSequenceFrom(startStringIdx, startAbs, intervals, count){
+  let absList=[]; let degreeIdx=0, octave=0;
+  for(let i=0;i<count;i++){
+    absList.push(startAbs + intervals[degreeIdx] + octave*12);
+    degreeIdx++;
+    if(degreeIdx===intervals.length){ degreeIdx=0; octave++; }
+  }
+  return assignFrets(startStringIdx, startAbs, absList);
+}
+
+// motor genérico: dada una cuerda/traste de arranque y una lista de alturas
+// absolutas a tocar en orden, devuelve la digitación cómoda (cuerda+traste)
+// para cada una. Lo usan tanto las escalas como los ejercicios.
+function assignFrets(startStringIdx, startAbs, absList){
+  let stringIdx = startStringIdx;
+  let stringStartFret = startAbs - STRINGS[stringIdx].open; // traste del primer dedo apoyado en esta cuerda
+  const order=[];
+  const seenAbs = new Map(); // abs ya tocado -> {stringIdx,fret}, para patrones ida y vuelta (ej. arpegios)
+  for(let i=0;i<absList.length;i++){
+    const abs = absList[i];
+
+    // si esta altura ya sonó antes en la secuencia (típico de patrones que bajan
+    // repitiendo notas, como R-3-5-3-R), reusamos exactamente la misma cuerda y
+    // traste en vez de recalcular — es la misma nota, va con el mismo dedo.
+    if(seenAbs.has(abs)){
+      const prev = seenAbs.get(abs);
+      stringIdx = prev.stringIdx;
+      stringStartFret = prev.fret;
+      order.push({abs, fret:prev.fret, stringName:STRINGS[stringIdx].name, note:pcName(abs)});
+      continue;
+    }
+
+    let fret = abs - STRINGS[stringIdx].open;
+    while(fret<0 && stringIdx<STRINGS.length-1){ stringIdx++; fret = abs - STRINGS[stringIdx].open; stringStartFret=fret; }
+
+    const beforeShiftStart = stringStartFret; // referencia de la mano antes de intentar cambiar de cuerda
+    // cambiar de cuerda cuando la nota queda a más de MAX_STRETCH trastes
+    // del PRIMER traste tocado en la cuerda actual (no del clavijero)
+    while((fret-stringStartFret)>MAX_STRETCH && stringIdx>0){
+      const nextFret = abs - STRINGS[stringIdx-1].open;
+      if(nextFret>=0){ stringIdx--; fret=nextFret; stringStartFret=fret; }
+      else break;
+    }
+    if(fret<0) fret=0;
+    // si no hay cuerda más aguda disponible (ya estamos en la cuerda G) y aun así
+    // el estiramiento es excesivo, deslizar la mano sobre la misma cuerda
+    if((fret-stringStartFret)>MAX_STRETCH){ stringStartFret = fret; }
+    // priorizar cuerda presionada sobre cuerda al aire para las notas intermedias,
+    // pero SOLO si la alternativa sigue estando dentro del span cómodo de mano
+    // (respecto de dónde ya estaba apoyada la mano). Si forzarla implica un
+    // estiramiento incómodo, es mejor tocar la nota al aire.
+    if(i>0 && fret===0 && stringIdx<STRINGS.length-1){
+      const altFret = abs - STRINGS[stringIdx+1].open;
+      if(altFret>0 && (altFret-beforeShiftStart)<=MAX_STRETCH){
+        stringIdx = stringIdx+1; fret = altFret; stringStartFret = altFret;
+      }
+    }
+    order.push({abs, fret, stringName:STRINGS[stringIdx].name, note:pcName(abs)});
+    seenAbs.set(abs, {stringIdx, fret});
+  }
+  return order;
+}
+
+function maxStringSpan(seq){
+  let maxSpan=0, curStr=seq[0].stringName, curMin=seq[0].fret, curMax=seq[0].fret;
+  seq.forEach(n=>{
+    if(n.stringName!==curStr){ curStr=n.stringName; curMin=n.fret; curMax=n.fret; }
+    else { curMin=Math.min(curMin,n.fret); curMax=Math.max(curMax,n.fret); }
+    maxSpan=Math.max(maxSpan, curMax-curMin);
+  });
+  return maxSpan;
+}
+
+/* ---------- ejercicios ---------- */
+// para una raíz y un patrón dados, busca en qué cuerda conviene anclar la
+// posición SIN bajar del traste mínimo indicado (minFret) — así los pasos de
+// un ejercicio siempre suben por el mástil en vez de saltar a una cuerda más
+// aguda solo para encontrar un traste más bajo. Entre las cuerdas válidas
+// (traste >= minFret) se prioriza la más cómoda (menor estiramiento) y, en
+// caso de empate, la que sigue más de cerca al traste anterior.
+function bestPatternAnchor(rootPC, pattern, minFret){
+  minFret = minFret || 0;
+  const candidates = [];
+  STRINGS.forEach((s,idx)=>{
+    let fret = ((rootPC - s.open)%12+12)%12;
+    while(fret < minFret) fret += 12; // subir de octava hasta alcanzar el traste mínimo
+    if(fret > 22) return; // fuera de rango práctico del mástil
+    const startAbs = s.open + fret;
+    const absList = pattern.map(off=>startAbs+off);
+    const seq = assignFrets(idx, startAbs, absList);
+    const span = maxStringSpan(seq);
+    candidates.push({stringIdx:idx, fret, startAbs, seq, span});
+  });
+  candidates.sort((a,b)=> a.span-b.span || a.fret-b.fret);
+  return candidates[0];
+}
+
+// Devuelve una lista PLANA de pasos navegables: cada segmento del ejercicio
+// (ej. la tríada aumentada, luego la resolución a maj7) es su propio paso,
+// no un bloque combinado. Así se puede ir de a un acorde por vez con las
+// flechas, y el traste mínimo sigue subiendo en cadena entre segmentos y
+// entre ciclos, sin retroceder nunca en el mástil.
+function computeExerciseAnchors(exercise, baseRootPC){
+  let minFret = 0;
+  const steps = [];
+  for(let cycle=0; cycle<exercise.totalSteps; cycle++){
+    const stepRootPC = ((baseRootPC + exercise.stepShift*cycle)%12+12)%12;
+    exercise.segments.forEach((seg, segIdx)=>{
+      const segRootPC = ((stepRootPC + seg.rootOffset)%12+12)%12;
+      const anchor = bestPatternAnchor(segRootPC, seg.pattern, minFret);
+      minFret = anchor.seq[anchor.seq.length-1].fret;
+      steps.push({stepRootPC, segRootPC, segIdx, cycle, segment:seg, seq:anchor.seq});
+    });
+  }
+  return steps;
+}
+
+// genera todas las posiciones donde puede arrancar la misma escala (misma raíz,
+// mismas notas) en otro lugar del mástil, y descarta las que resultan en
+// exactamente el mismo dibujo de digitación, o que exigen un estiramiento de
+// mano incómodo dentro de una misma cuerda (más de MAX_STRETCH trastes). Cada
+// una queda etiquetada con la octava de la raíz que le da origen.
+function getPositionCandidates(rootPC, intervals, maxFret){
+  let raw = [];
+  for(let k=0;k<=2;k++){
+    for(let i=0;i<STRINGS.length;i++){
+      const fret = rootPC + 12*k - STRINGS[i].open;
+      if(fret>=0 && fret<=maxFret) raw.push({stringIdx:i, fret, abs:STRINGS[i].open+fret, octave:k});
+    }
+  }
+  raw.sort((a,b)=> a.octave-b.octave || b.stringIdx-a.stringIdx || a.fret-b.fret);
+  const sigLen = Math.min(intervals.length+1, 8);
+
+  function buildList(enforceSpan){
+    const seenSig = new Set();
+    const list = [];
+    raw.forEach(c=>{
+      const testSeq = buildSequenceFrom(c.stringIdx, c.abs, intervals, sigLen);
+      if(enforceSpan && maxStringSpan(testSeq) > MAX_STRETCH) return;
+      const sig = testSeq.map(n=>n.stringName+n.fret).join('|');
+      if(!seenSig.has(sig)){ seenSig.add(sig); list.push(c); }
+    });
+    return list;
+  }
+
+  const strict = buildList(true);
+  return strict.length ? strict : buildList(false); // salvaguarda: si el filtro deja la lista vacía, no filtrar
+}
+
+function recomputePositions(){
+  const rootPC = NOTE_TO_EIDX[rootSelect.value];
+  const scale = SCALES.find(s=>s.id===scaleSelect.value);
+  positions = getPositionCandidates(rootPC, scale.intervals, 16);
+  posIndex = 0;
+}
+
+/* ---------- render ---------- */
+function renderAll(){
+  const rootPC = NOTE_TO_EIDX[rootSelect.value];
+  const scale = SCALES.find(s=>s.id===scaleSelect.value);
+  let count = Math.max(2, Math.min(24, parseInt(countInput.value)||8));
+  countInput.value = count;
+
+  if(!positions.length) recomputePositions();
+  if(posIndex>=positions.length) posIndex = positions.length-1;
+  const anchor = positions[posIndex];
+
+  const seq = buildSequenceFrom(anchor.stringIdx, anchor.abs, scale.intervals, count);
+  currentSeq = seq;
+  const scalePCs = new Set(scale.intervals.map(iv=>(rootPC+iv)%12));
+
+  const maxFretUsed = Math.max(...seq.map(n=>n.fret), anchor.fret);
+  const fretsToShow = Math.max(15, Math.min(24, maxFretUsed+2));
+
+  drawBoard(seq, scalePCs, rootPC, fretsToShow);
+  renderStaffNotation(seq);
+  drawSeqStrip(seq, rootPC);
+  drawIntervalStrip(seq);
+  updatePositionLabel(anchor, seq[0]);
+  updateTheory(scale);
+}
+
+function updateTheory(scale){
+  const t = THEORY[scale.id];
+  if(!t) return;
+  theoryFormula.textContent = t.formula;
+  theoryBlurb.textContent = t.blurb;
+  theoryTips.innerHTML = '';
+  t.tips.forEach(tip=>{
+    const li = document.createElement('li');
+    li.textContent = tip;
+    theoryTips.appendChild(li);
+  });
+}
+
+function updatePositionLabel(anchor, firstNote){
+  const withinOctave = positions.filter(p=>p.octave===anchor.octave);
+  const withinIdx = withinOctave.indexOf(anchor);
+  posLabel.innerHTML = `Octava ${anchor.octave+1} <span class="muted">·</span> posición ${withinIdx+1} de ${withinOctave.length} <span class="muted">·</span> cuerda <b>${firstNote.stringName}</b>, traste <b>${firstNote.fret}</b>`;
+  posPrevBtn.disabled = posIndex<=0;
+  posNextBtn.disabled = posIndex>=positions.length-1;
+
+  const octaves = [...new Set(positions.map(p=>p.octave))];
+  octTabs.innerHTML = '';
+  octaves.forEach(oct=>{
+    const btn = document.createElement('button');
+    btn.className = 'oct-tab'+(oct===anchor.octave?' active':'');
+    btn.type = 'button';
+    btn.textContent = 'Octava '+(oct+1);
+    btn.addEventListener('click', ()=>{
+      const firstIdx = positions.findIndex(p=>p.octave===oct);
+      if(firstIdx>=0){ posIndex = firstIdx; renderAll(); }
+    });
+    octTabs.appendChild(btn);
+  });
+}
+
+function drawBoard(seq, scalePCs, rootPC, fretsToShow){
+  const NUT_X = 46, FW = 58;
+  const yFor = {G:34, D:88, A:142, E:196};
+  const boardW = NUT_X + fretsToShow*FW + 30;
+  const boardH = 260;
+
+  let svg = `<svg viewBox="0 0 ${boardW} ${boardH}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // fondo madera
+  svg += `<defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3B2818"/>
+      <stop offset="100%" stop-color="#26160D"/>
+    </linearGradient>
+  </defs>`;
+  svg += `<rect x="${NUT_X}" y="10" width="${fretsToShow*FW}" height="${boardH-40}" rx="6" fill="url(#wood)"/>`;
+
+  // inlays
+  const singleInlay=[3,5,7,9,15,17,19,21], doubleInlay=[12,24];
+  const midY=(yFor.D+yFor.A)/2;
+  for(let f=1; f<=fretsToShow; f++){
+    const cx = NUT_X + (f-0.5)*FW;
+    if(singleInlay.includes(f)){
+      svg += `<circle cx="${cx}" cy="${midY}" r="5" fill="#5c4630" opacity="0.7"/>`;
+    } else if(doubleInlay.includes(f)){
+      svg += `<circle cx="${cx}" cy="${yFor.G+18}" r="5" fill="#5c4630" opacity="0.7"/>`;
+      svg += `<circle cx="${cx}" cy="${yFor.E-18}" r="5" fill="#5c4630" opacity="0.7"/>`;
+    }
+  }
+
+  // líneas de traste
+  for(let f=0; f<=fretsToShow; f++){
+    const x = NUT_X + f*FW;
+    svg += `<line x1="${x}" y1="10" x2="${x}" y2="${boardH-30}" stroke="${f===0?'#EDE3D0':'#9c8b76'}" stroke-width="${f===0?6:2}" opacity="${f===0?1:0.6}"/>`;
+  }
+
+  // cuerdas
+  STRINGS.forEach(s=>{
+    svg += `<line x1="${NUT_X-30}" y1="${yFor[s.name]}" x2="${NUT_X+fretsToShow*FW}" y2="${yFor[s.name]}" stroke="#C9C2B8" stroke-width="${s.weight}" opacity="0.85"/>`;
+    svg += `<text x="${NUT_X-40}" y="${yFor[s.name]+4}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" fill="#8A7A68">${s.name}</text>`;
+  });
+
+  // números de traste
+  for(let f=1; f<=fretsToShow; f++){
+    if(singleInlay.includes(f) || doubleInlay.includes(f) || f%2===1){
+      const x = NUT_X + (f-0.5)*FW;
+      svg += `<text x="${x}" y="${boardH-14}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#8A7A68">${f}</text>`;
+    }
+  }
+
+  // capa de referencia: todas las notas de la escala en todo el diapasón
+  STRINGS.forEach(s=>{
+    for(let f=0; f<=fretsToShow; f++){
+      const abs = s.open+f;
+      const pc = ((abs%12)+12)%12;
+      if(scalePCs.has(pc)){
+        const isRoot = pc===rootPC;
+        const cx = f===0 ? NUT_X-15 : NUT_X + (f-0.5)*FW;
+        const cy = yFor[s.name];
+        svg += `<circle cx="${cx}" cy="${cy}" r="10" fill="${isRoot?'#B98A3E':'#8A6B45'}" opacity="0.9" stroke="#120D0A" stroke-width="1"/>`;
+        svg += `<text x="${cx}" y="${cy+3.8}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="10.5" fill="#FBF6EC">${NOTE_NAMES_FROM_E[pc]}</text>`;
+      }
+    }
+  });
+
+  // ruta de la secuencia elegida (línea conectora)
+  const pts = seq.map(n=>{
+    const cx = n.fret===0 ? NUT_X-15 : NUT_X + (n.fret-0.5)*FW;
+    const cy = yFor[n.stringName];
+    return [cx,cy];
+  });
+  if(pts.length>1){
+    svg += `<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#E4B85C" stroke-width="1.6" opacity="0.55" stroke-dasharray="3,4"/>`;
+  }
+
+  // marcadores numerados de la secuencia
+  seq.forEach((n,i)=>{
+    const cx = n.fret===0 ? NUT_X-15 : NUT_X + (n.fret-0.5)*FW;
+    const cy = yFor[n.stringName];
+    const pc = ((n.abs%12)+12)%12;
+    const isRoot = pc===rootPC;
+    const fill = isRoot ? '#E4B85C' : '#4FB8AE';
+    svg += `<g id="seq-${i}" class="marker">
+      <circle cx="${cx}" cy="${cy}" r="13" fill="${fill}" stroke="#120D0A" stroke-width="1.5"/>
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="11.5" fill="#1B140F">${n.note}</text>
+      <circle cx="${cx-12}" cy="${cy-12}" r="8" fill="#120D0A" stroke="#3a2c1f" stroke-width="1"/>
+      <text x="${cx-12}" y="${cy-9}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#EDE3D0">${i+1}</text>
+    </g>`;
+  });
+
+  svg += `</svg>`;
+  boardScroll.innerHTML = svg;
+}
+
+// Diapasón de referencia completo: marca CADA traste de CADA cuerda con su
+// nota, en colores de alto contraste (fondo claro sólido + texto oscuro) para
+// que se lea bien incluso con muchas notas juntas. Naturales y sostenidas se
+// distinguen por color.
+function drawNotesBoard(fretsToShow, highlightPC){
+  const NUT_X = 46, FW = 58;
+  const yFor = {G:34, D:88, A:142, E:196};
+  const boardW = NUT_X + fretsToShow*FW + 30;
+  const boardH = 260;
+
+  let svg = `<svg viewBox="0 0 ${boardW} ${boardH}" xmlns="http://www.w3.org/2000/svg">`;
+
+  svg += `<defs>
+    <linearGradient id="wood2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3B2818"/>
+      <stop offset="100%" stop-color="#26160D"/>
+    </linearGradient>
+  </defs>`;
+  svg += `<rect x="${NUT_X}" y="10" width="${fretsToShow*FW}" height="${boardH-40}" rx="6" fill="url(#wood2)"/>`;
+
+  const singleInlay=[3,5,7,9,15,17,19,21], doubleInlay=[12,24];
+  const midY=(yFor.D+yFor.A)/2;
+  for(let f=1; f<=fretsToShow; f++){
+    const cx = NUT_X + (f-0.5)*FW;
+    if(singleInlay.includes(f)){
+      svg += `<circle cx="${cx}" cy="${midY}" r="5" fill="#5c4630" opacity="0.7"/>`;
+    } else if(doubleInlay.includes(f)){
+      svg += `<circle cx="${cx}" cy="${yFor.G+18}" r="5" fill="#5c4630" opacity="0.7"/>`;
+      svg += `<circle cx="${cx}" cy="${yFor.E-18}" r="5" fill="#5c4630" opacity="0.7"/>`;
+    }
+  }
+
+  for(let f=0; f<=fretsToShow; f++){
+    const x = NUT_X + f*FW;
+    svg += `<line x1="${x}" y1="10" x2="${x}" y2="${boardH-30}" stroke="${f===0?'#EDE3D0':'#9c8b76'}" stroke-width="${f===0?6:2}" opacity="${f===0?1:0.6}"/>`;
+  }
+
+  STRINGS.forEach(s=>{
+    svg += `<line x1="${NUT_X-30}" y1="${yFor[s.name]}" x2="${NUT_X+fretsToShow*FW}" y2="${yFor[s.name]}" stroke="#C9C2B8" stroke-width="${s.weight}" opacity="0.85"/>`;
+    svg += `<text x="${NUT_X-40}" y="${yFor[s.name]+4}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" fill="#8A7A68">${s.name}</text>`;
+  });
+
+  for(let f=1; f<=fretsToShow; f++){
+    if(singleInlay.includes(f) || doubleInlay.includes(f) || f%2===1){
+      const x = NUT_X + (f-0.5)*FW;
+      svg += `<text x="${x}" y="${boardH-14}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#8A7A68">${f}</text>`;
+    }
+  }
+
+  // marcador de cada nota, en cada traste de cada cuerda. Si hay una nota
+  // elegida para resaltar, el resto se atenúa y esa se agranda/resalta.
+  STRINGS.forEach(s=>{
+    for(let f=0; f<=fretsToShow; f++){
+      const abs = s.open+f;
+      const pc = ((abs%12)+12)%12;
+      const noteName = NOTE_NAMES_FROM_E[pc];
+      const isSharp = noteName.includes('#');
+      const cx = f===0 ? NUT_X-15 : NUT_X + (f-0.5)*FW;
+      const cy = yFor[s.name];
+      const hasHighlight = highlightPC!==null && highlightPC!==undefined;
+      const isHighlighted = hasHighlight && pc===highlightPC;
+
+      // todas las notas mantienen siempre el mismo estilo normal (natural=crema, sostenida=ámbar).
+      const fill = isSharp ? '#E4B85C' : '#EDE3D0';
+      const textFill = '#1B140F';
+      const r = isHighlighted ? 13 : 11.5;
+      const fontSize = isHighlighted ? 12.5 : 12;
+
+      // la nota resaltada suma un anillo brillante detrás, sin tocar el resto del diapasón.
+      if(isHighlighted){
+        svg += `<circle cx="${cx}" cy="${cy}" r="17" fill="none" stroke="#E8483D" stroke-width="3.2"/>`;
+      }
+
+      svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#120D0A" stroke-width="1.2"/>`;
+      svg += `<text x="${cx}" y="${cy+4.2}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="${fontSize}" fill="${textFill}">${noteName}</text>`;
+    }
+  });
+
+  svg += `</svg>`;
+  boardScroll.innerHTML = svg;
+}
+
+function renderNotesDegreeStrip(){
+  const degreeNotes = ['C','D','E','F','G','A','B'];
+  notesDegreeStrip.innerHTML = '';
+  notesDegreeStrip.style.gridTemplateColumns = `repeat(${degreeNotes.length}, minmax(56px, 1fr))`;
+  degreeNotes.forEach((n,i)=>{
+    const el = document.createElement('div');
+    el.className = 'seq-note'+(i===0?' root':'');
+    el.innerHTML = `<span class="idx">${i+1}</span>${n}`;
+    notesDegreeStrip.appendChild(el);
+  });
+}
+
+function renderNotes(){
+  const fretsToShow = Math.max(12, Math.min(24, parseInt(fretsInput.value)||12));
+  fretsInput.value = fretsToShow;
+  const highlightPC = highlightNoteSelect.value ? NOTE_TO_EIDX[highlightNoteSelect.value] : null;
+  drawNotesBoard(fretsToShow, highlightPC);
+  renderNotesDegreeStrip();
+}
+
+function drawSeqStrip(seq, rootPC){
+  seqStrip.innerHTML = '';
+  seqStrip.style.gridTemplateColumns = `repeat(${seq.length}, minmax(56px, 1fr))`;
+  seq.forEach((n,i)=>{
+    const pc = ((n.abs%12)+12)%12;
+    const isRoot = pc===rootPC;
+    const el = document.createElement('div');
+    el.className = 'seq-note'+(isRoot?' root':'');
+    el.id = 'strip-'+i;
+    el.innerHTML = `<span class="idx">${i+1}</span>${n.note}`;
+    seqStrip.appendChild(el);
+  });
+}
+
+function tonalLabel(semitones){
+  const map = {1:'½ tono', 2:'1 tono', 3:'1½ tono', 4:'2 tonos', 5:'2½ tonos', 6:'3 tonos'};
+  if(map[semitones]) return map[semitones];
+  return (semitones/2)+' tonos';
+}
+
+function drawIntervalStrip(seq){
+  intervalStrip.innerHTML = '';
+  intervalStrip.style.gridTemplateColumns = `repeat(${seq.length}, minmax(56px, 1fr))`;
+  for(let i=0;i<seq.length-1;i++){
+    const semitones = seq[i+1].abs - seq[i].abs;
+    const el = document.createElement('div');
+    el.className = 'interval-chip';
+    el.style.gridColumn = `${i+1}`; // misma columna que la nota inicial del par
+    el.innerHTML = `<span class="pair">${seq[i].note} → ${seq[i+1].note}</span><span class="dist">${tonalLabel(semitones)}</span>`;
+    intervalStrip.appendChild(el);
+  }
+}
+
+function renderExercise(){
+  const ex = getCurrentExercise();
+  exerciseBlurb.textContent = ex.description;
+
+  const allSteps = computeExerciseAnchors(ex, NOTE_TO_EIDX[exerciseRootSelect.value]);
+  if(exerciseStepIndex>=allSteps.length) exerciseStepIndex = allSteps.length-1;
+  if(exerciseStepIndex<0) exerciseStepIndex = 0;
+
+  const step = allSteps[exerciseStepIndex];
+  currentSeq = step.seq;
+
+  const chordPCs = new Set(step.segment.pattern.map(off=>((step.segRootPC+off)%12+12)%12));
+  const maxFretUsed = Math.max(...step.seq.map(n=>n.fret));
+  const fretsToShow = Math.max(15, Math.min(24, maxFretUsed+2));
+
+  drawBoard(step.seq, chordPCs, step.segRootPC, fretsToShow);
+  renderStaffNotation(step.seq);
+  drawSeqStrip(step.seq, step.segRootPC);
+  drawIntervalStrip(step.seq);
+
+  const customLabel = typeof ex.describeStep === 'function' ? ex.describeStep(step.segRootPC, step.segIdx) : `Acorde de <b>${pcName(step.segRootPC)}</b>`;
+  stepLabel.innerHTML = `Paso ${exerciseStepIndex+1} <span class="muted">de</span> ${allSteps.length} <span class="muted">·</span> ${customLabel}`;
+  stepPrevBtn.disabled = exerciseStepIndex<=0;
+  stepNextBtn.disabled = exerciseStepIndex>=allSteps.length-1;
+}
+
+/* ---------- notación en pentagrama ---------- */
+// Clave de Fa (Bass Clef): de arriba a abajo, línea por línea y espacio
+// Línea 1 (arriba): G        Espacio: F
+// Línea 2: E                Espacio: D
+// Línea 3 (central): C      Espacio: B
+// Línea 4: A                Espacio: G
+// Línea 5 (abajo): F
+// 
+// En coordenadas SVG: yOffsetInLineSpaces = (5 - posición)
+// Para convertir a coordenadas Y: y = staffY + 4*lineSpacing - (yOffset * lineSpacing/2)
+
+const staffNoteToYOffset = {
+  'G': 0,    'F': 0.5,  // línea superior
+  'E': 1,    'D': 1.5,
+  'C': 2,    'B': 2.5,  // línea central
+  'A': 3,    'G': 3.5,  // nota G aparece dos veces (espacio del cuarto)
+  'F': 4,    // línea inferior
+  // Notas sostenidas (aproximadamente entre líneas)
+  'F#': 0.5, 'D#': 1.5, 'C#': 2.5, 'A#': 3.5,
+  'G#': 0.75, // entre línea G y espacio F, aproximadamente
+};
+
+function drawStaffNotation(seq, tempo) {
+  const width = 800, height = 280;
+  
+  const staffX = 60, staffY = 20, staffWidth = width - 120;
+  const lineSpacing = 12;
+  
+  let svgStr = `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+  svgStr += `<rect width="${width}" height="${height}" fill="#120D0A"/>`;
+  
+  // === PENTAGRAMA ===
+  // 5 líneas del staff
+  for (let i = 0; i < 5; i++) {
+    const y = staffY + (i * lineSpacing);
+    svgStr += `<line x1="${staffX}" y1="${y}" x2="${staffX + staffWidth}" y2="${y}" stroke="#8A7A68" stroke-width="1.5"/>`;
+  }
+  
+  // Clave de Fa (dos puntos alrededor de la segunda línea desde arriba)
+  const clefX = staffX + 12;
+  const clefCenterY = staffY + lineSpacing;
+  svgStr += `<circle cx="${clefX}" cy="${clefCenterY - 6}" r="2.5" fill="#EDE3D0"/>`;
+  svgStr += `<circle cx="${clefX}" cy="${clefCenterY + 6}" r="2.5" fill="#EDE3D0"/>`;
+  
+  // Divisor
+  svgStr += `<line x1="${staffX + 35}" y1="${staffY}" x2="${staffX + 35}" y2="${staffY + 4*lineSpacing}" stroke="#8A7A68" stroke-width="2"/>`;
+  
+  // Notas en el staff
+  const noteWidth = Math.max(35, staffWidth / Math.max(seq.length + 1, 4));
+  let noteX = staffX + 50;
+  
+  seq.forEach((n, i) => {
+    const yOffset = staffNoteToYOffset[n.note];
+    if (yOffset !== undefined) {
+      const y = staffY + (4 * lineSpacing) - (yOffset * lineSpacing / 2);
+      
+      // Cabeza de nota (negra = círculo relleno + tallo)
+      svgStr += `<circle cx="${noteX}" cy="${y}" r="5.5" fill="#EDE3D0" stroke="#1B140F" stroke-width="1"/>`;
+      
+      // Tallo (hacia arriba)
+      svgStr += `<line x1="${noteX + 5.5}" y1="${y}" x2="${noteX + 5.5}" y2="${y - 28}" stroke="#EDE3D0" stroke-width="1.5"/>`;
+    }
+    noteX += noteWidth;
+  });
+  
+  // === NOMBRES DE NOTAS (entre pentagrama y tab) ===
+  const noteNamesY = staffY + (5 * lineSpacing) + 10;
+  noteX = staffX + 50;
+  seq.forEach((n, i) => {
+    svgStr += `<text x="${noteX}" y="${noteNamesY}" font-family="JetBrains Mono" font-weight="600" font-size="11" fill="#E4B85C" text-anchor="middle">${n.note}</text>`;
+    noteX += noteWidth;
+  });
+  
+  // === TABLATURA ===
+  const tabY = noteNamesY + 22;
+  const tabLineSpacing = 10;
+  const tabStrings = ['G', 'D', 'A', 'E'];
+  
+  tabStrings.forEach((str, i) => {
+    const y = tabY + (i * tabLineSpacing);
+    svgStr += `<line x1="${staffX}" y1="${y}" x2="${staffX + staffWidth}" y2="${y}" stroke="#8A7A68" stroke-width="1"/>`;
+    svgStr += `<text x="${staffX - 15}" y="${y + 3.5}" font-family="JetBrains Mono" font-size="10" fill="#8A7A68">${str}</text>`;
+  });
+  
+  // Números de traste
+  noteX = staffX + 50;
+  seq.forEach((n, i) => {
+    const stringIdx = tabStrings.indexOf(n.stringName);
+    if (stringIdx >= 0) {
+      const y = tabY + (stringIdx * tabLineSpacing);
+      svgStr += `<text x="${noteX}" y="${y + 3}" font-family="JetBrains Mono" font-weight="700" font-size="11" fill="#EDE3D0" text-anchor="middle">${n.fret}</text>`;
+    }
+    noteX += noteWidth;
+  });
+  
+  svgStr += `</svg>`;
+  
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = svgStr;
+  return tempDiv.querySelector('svg');
+}
+
+function renderStaffNotation(seq) {
+  const tempo = parseInt(tempoInput.value) || 96;
+  const staffPanel = document.getElementById('staffPanel');
+  if (staffPanel) {
+    staffPanel.innerHTML = '';
+    staffPanel.appendChild(drawStaffNotation(seq, tempo));
+  }
+}
+function playSequence(seq, bpmOverride){
+  if(!seq.length) return;
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+
+  const bpm = bpmOverride || parseInt(tempoInput.value)||96;
+  const noteDur = 60/bpm;
+  let t = audioCtx.currentTime + 0.08;
+
+  seq.forEach((n,i)=>{
+    const freq = 41.2034 * Math.pow(2, n.abs/12);
+    playNote(freq, t, noteDur*0.85);
+    const delayMs = Math.max(0, (t-audioCtx.currentTime)*1000);
+    setTimeout(()=>flashIndex(i), delayMs);
+    t += noteDur;
+  });
+}
+
+function playNote(freq, startTime, dur){
+  const osc = audioCtx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(freq, startTime);
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 900;
+
+  const attack = 0.015;
+  const release = Math.min(0.08, dur*0.3); // corte corto al final, proporcional si la nota es muy breve
+  const sustainLevel = 0.5;
+  const sustainUntil = Math.max(startTime+attack, startTime+dur-release);
+
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.0001, startTime);
+  gain.gain.exponentialRampToValueAtTime(sustainLevel, startTime+attack);
+  gain.gain.setValueAtTime(sustainLevel, sustainUntil); // mantiene el volumen sostenido en vez de decaer
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime+dur);
+
+  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.start(startTime);
+  osc.stop(startTime+dur+0.05);
+}
+
+function flashIndex(i){
+  const marker = document.getElementById('seq-'+i);
+  const chip = document.getElementById('strip-'+i);
+  [marker && marker.querySelector('circle'), chip].forEach(el=>{});
+  if(chip){ chip.classList.add('active'); setTimeout(()=>chip.classList.remove('active'), 280); }
+  if(marker){
+    const c = marker.querySelector('circle');
+    const orig = c.getAttribute('r');
+    c.setAttribute('r', 16);
+    setTimeout(()=>c.setAttribute('r', orig), 220);
+  }
+}
+
+/* ---------- init ---------- */
+tempoVal.textContent = tempoInput.value+' BPM';
+tempoValEx.textContent = tempoInputEx.value+' BPM';
+renderModeTabs();
+recomputePositions();
+renderAll();
+</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('Service Worker registrado'))
+        .catch(err => console.log('Error al registrar Service Worker:', err));
+    }
+  </script>
+
+</body>
+</html>
