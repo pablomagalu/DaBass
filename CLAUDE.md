@@ -32,7 +32,7 @@ App de práctica de bajo de archivo único: un solo `index.html` autocontenido, 
 
 \## Deploy
 
-\- Hosteado en Vercel desde el repo de GitHub `pablomagu/DaBass`.
+\- Hosteado en Vercel desde el repo de GitHub `pablomagalu/DaBass`.
 
 \- El archivo principal se llama `index.html` por compatibilidad con Vercel.
 
